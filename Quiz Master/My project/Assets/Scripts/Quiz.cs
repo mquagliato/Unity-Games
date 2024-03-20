@@ -3,22 +3,61 @@ using System.Collections.Generic;
 using UnityEngine;
 using TMPro;
 using UnityEngine.UI;
+using System;
 
 public class Quiz : MonoBehaviour
 {
+    //organizing the variable by groups
+    [Header("Questions")]
     [SerializeField] QuestionSO question;
     [SerializeField] TextMeshProUGUI questionText;
+
+    //organizing the variable by groups
+    [Header("Answer")]
     [SerializeField] GameObject[] answerButtons;
     int correctAnswerIndex;
+    bool hasAnsweredEarly;
+
+    [Header("Button Colors")]
     [SerializeField]  Sprite defaultAnswerSprite; //have a look later when this is used. maybe it is because we need to use buttons
     [SerializeField]  Sprite correctAnswerSprite; //have a look later when this is used. maybe it is because we need to use buttons
 
+    [Header("Timer")]
+    [SerializeField] Image timerImage;
+    Timer timer;
+
     private void Start()
     {
+        timer = FindObjectOfType<Timer>();
         DisplayQuestions();
     }
-  
+
+    private void Update()
+    {
+        timerImage.fillAmount = timer.fillFraction;
+        // if statement for loading the next question. it get a public bool on the timer script
+        if (timer.loadNextQuestion)
+        {
+            hasAnsweredEarly = false;
+            GetNextQuestion();
+            timer.loadNextQuestion = false;
+        }
+        else if(!hasAnsweredEarly && !timer.isAnsweringQuestion)
+        {
+            DisplayAnswer(-1);//we pass the index -1 to not accidentaly pass a correct index that matches the answer index. This way you can satisfy the method index and fall in the "else" statement of the method 
+            SetButtonState(false);
+        }
+    }
+
     public void OnAwnserSelected(int index)
+    {
+        hasAnsweredEarly = true;
+        DisplayAnswer(index);
+        SetButtonState(false);
+        timer.CancelTimer();    
+    }
+
+    private void DisplayAnswer(int index)
     {
         Image buttonImage;
 
@@ -37,8 +76,6 @@ public class Quiz : MonoBehaviour
             buttonImage = answerButtons[correctAnswerIndex].GetComponent<Image>();
             buttonImage.sprite = correctAnswerSprite;
         }
-
-        SetButtonState(false);
     }
 
     //sets up a new question and allow the player to click on a new button
