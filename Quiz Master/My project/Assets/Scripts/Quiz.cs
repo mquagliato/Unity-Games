@@ -18,7 +18,7 @@ public class Quiz : MonoBehaviour
     [Header("Answer")]
     [SerializeField] GameObject[] answerButtons;
     int correctAnswerIndex;
-    bool hasAnsweredEarly;
+    bool hasAnsweredEarly = true;
 
     [Header("Button Colors")]
     [SerializeField]  Sprite defaultAnswerSprite; //have a look later when this is used. maybe it is because we need to use buttons
@@ -32,10 +32,17 @@ public class Quiz : MonoBehaviour
     [SerializeField] TextMeshProUGUI scoreText;
     ScoreKeeper scoreKeeper;
 
-    private void Start()
+    [Header("ProgessBar")]
+    [SerializeField] Slider progressBar;
+
+    public bool isComplete;
+
+    private void Awake()
     {
         timer = FindObjectOfType<Timer>();
         scoreKeeper = FindAnyObjectByType<ScoreKeeper>();
+        progressBar.maxValue = questions.Count;
+        progressBar.value = 0;
 
     }
 
@@ -45,6 +52,12 @@ public class Quiz : MonoBehaviour
         // if statement for loading the next question. it get a public bool on the timer script
         if (timer.loadNextQuestion)
         {
+            if (progressBar.value == progressBar.maxValue)
+            {
+                isComplete = true;
+                return;
+            }
+
             hasAnsweredEarly = false;
             GetNextQuestion();
             timer.loadNextQuestion = false;
@@ -63,6 +76,7 @@ public class Quiz : MonoBehaviour
         SetButtonState(false);
         timer.CancelTimer();
         scoreText.text = "Score " + scoreKeeper.CalculateScore() + "%";
+
     }
 
     private void DisplayAnswer(int index)
@@ -97,6 +111,7 @@ public class Quiz : MonoBehaviour
             GetRandomQuestion();
             DisplayQuestions();
             SetButtonState(true);
+            progressBar.value++;
             scoreKeeper.IncrementQuestionSeen();
         }
     }
